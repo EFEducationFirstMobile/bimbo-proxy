@@ -1,0 +1,17 @@
+{
+  "name": "qa-proxy",
+  "version": "1.0.0",
+  "description": "A simple and controllable system-wide proxy for QA purposes",
+  "main": "proxy.js",
+  "dependencies": {
+    "connect": "^3.5.0",
+    "http-proxy": "^1.15.2",
+    "transformer-proxy": "^0.3.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bruno Bossola",
+  "license": "MIT"
+}
