@@ -1,6 +1,8 @@
 # bimbo-proxy
 A simple NodeJS proxy for QA automation.
 
+**How does it work?**
+
 bimbo-proxy can be configured as a proxy for the browser during your tests, it exposes rest APIs that allow you to programmatically fake calls to your backend services, so that you can simulate responses or error conditions to validate specific scenarios of your tests. 
 Please note that only http is supported in faking responses, SSL connections are blindly proxied.
 
@@ -42,5 +44,17 @@ To remove that rule, simply use the DELETE verb on the same resource:
 ``` bash
 curl -v -X DELETE http://localhost:8888/admin/rules/status.html
 ```
-
 Simples!
+
+
+**How do I run it?**
+
+Easy steps:
+- make sure you have node and npm installed (note: requires node 4.x+)
+- clone the project
+- npm install
+- node index.js
+
+You may want to install also nodemon in order to keep the proxy alive regardless of system problems.
+
+
