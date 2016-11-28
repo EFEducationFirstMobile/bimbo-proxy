@@ -67,10 +67,37 @@ var rules_handler = function(request, response) {
 
 
 //
-// The faking filter
+// The https faking filter
 //
 
-var faking_filter = function(proxyRes, request, response) {
+var https_filter = function(req, socket) {
+    var result = find_result(req);
+    if (!result || !is5xx(result)) {
+        var serverUrl = url.parse('https://' + req.url);
+        var srvSocket = net.connect(serverUrl.port, serverUrl.hostname, function() {
+            socket.write(
+                'HTTP/1.1 200 Connection Established\r\n' +
+                'Proxy-agent: bimbo-proxy\r\n' +
+                '\r\n');
+            srvSocket.pipe(socket);
+            socket.pipe(srvSocket);
+        });
+    } else {
+        socket.write(
+            'HTTP/1.1 '+result.status+' '+result.text+'\r\n' +
+            'Proxy-agent: bimbo-proxy\r\n' +
+            '\r\n');
+
+        socket.destroy();
+    }
+}
+
+
+//
+// The http faking filter
+//
+
+var http_filter = function(proxyRes, request, response) {
     var content,
         _write = response.write;
     _writeHead = response.writeHead;
@@ -141,6 +168,10 @@ var parse_post = function(request, callback) {
     });
 }
 
+var is5xx = function(result) {
+    return result.status >= 500 && result.status <= 599;
+}
+
 // TODO: we should make it work lowercase and maybe
 // we do have a real function to do that, right?
 var delete_header = function(response, name) {
@@ -166,5 +197,6 @@ var find_result = function(request) {
 // Exports!
 //
 
-exports.filter = faking_filter;
+exports.http_filter = http_filter;
+exports.https_filter = https_filter;
 exports.rules_handler = rules_handler;
