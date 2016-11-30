@@ -55,7 +55,7 @@ var rules_handler = function(request, response) {
     } else if (request.method == 'DELETE') {
         if (results_by_regex[regex] != undefined) {
             delete results_by_regex[regex]
-            console.log('rule added for regex "%s"', regex);
+            console.log('rule removed for regex "%s"', regex);
             respond(response, 200, '{"regex":"'+regex+'"}, "deleted":true}');
         } else {
             respond(response, 404);
@@ -83,12 +83,20 @@ var https_filter = function(req, socket) {
             socket.pipe(srvSocket);
         });
     } else {
-        socket.write(
-            'HTTP/1.1 '+result.status+' '+result.text+'\r\n' +
-            'Proxy-agent: bimbo-proxy\r\n' +
-            '\r\n');
+        console.log("Response to %s will be faked to %s", req.url, JSON.stringify(result))
+        // socket.write("HTTP/" + req.httpVersion + " 500 Connection error\r\n\r\n");
+        // socket.end();
+        socket.write('HTTP/' + req.httpVersion + ' '+result.status+' '+result.text+'\r\n');
+        socket.write('Proxy-agent: bimbo-proxy\r\n');
 
-        socket.destroy();
+        if (result.headers) {
+            result.headers.forEach(function(header) {
+                socket.write(header.name+': '+header.value+'\r\n');
+            });
+        }
+
+        socket.write('\r\n');
+        socket.end();
     }
 }
 
@@ -107,7 +115,7 @@ var http_filter = function(proxyRes, request, response) {
     response.writeHead = function() {
         response.setHeader('x-bimbo-proxy', 'true');
         if (result) {
-            console.log("Response will be faked to ", JSON.stringify(result))
+            console.log("Response to %s will be faked to %s", request.url, JSON.stringify(result))
 
             response.setHeader('x-bimbo-faked', 'true');
             delete_header(response, 'transfer-encoding');
@@ -118,7 +126,7 @@ var http_filter = function(proxyRes, request, response) {
                 response.setHeader('Content-Type', result.type + '; charset=utf-8')
             }
 
-            headers = result.headers;
+            var headers = result.headers;
             if (headers) {
                 headers.forEach(function(header) {
                     if (header.value) {
